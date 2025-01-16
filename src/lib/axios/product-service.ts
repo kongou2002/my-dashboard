@@ -7,7 +7,8 @@ export class ProductService {
       const response = await axiosClient.get("products/manage-products/");
       return response.data;
     } catch (error) {
-      throw new Error(`Error fetching products: ${error}`);
+      console.log("🚀 ~ ProductService ~ getAllProducts ~ error:", error);
+      // throw new Error(`Error fetching products: ${error}`);
     }
   }
 
@@ -16,7 +17,8 @@ export class ProductService {
       const response = await axiosClient.get(`/products/${productId}`);
       return response.data;
     } catch (error) {
-      throw new Error(`Error fetching product with ID ${productId}: ${error}`);
+      console.log("🚀 ~ ProductService ~ getProductById ~ error:", error);
+      // throw new Error(`Error fetching product with ID ${productId}: ${error}`);
     }
   }
 
@@ -28,7 +30,8 @@ export class ProductService {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`Error creating product: ${error}`);
+      console.log("🚀 ~ ProductService ~ createProduct ~ error:", error);
+      // throw new Error(`Error creating product: ${error}`);
     }
   }
 
@@ -40,7 +43,8 @@ export class ProductService {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`Error updating product with ID ${productId}: ${error}`);
+      console.log("🚀 ~ ProductService ~ updateProduct ~ error:", error);
+      // throw new Error(`Error updating product with ID ${productId}: ${error}`);
     }
   }
 
@@ -52,7 +56,8 @@ export class ProductService {
       console.log("delete result", response);
       return response;
     } catch (error) {
-      throw new Error(`Error deleting product with ID ${productId}: ${error}`);
+      console.log("🚀 ~ ProductService ~ deleteProduct ~ error:", error);
+      // throw new Error(`Error deleting product with ID ${productId}: ${error}`);
     }
   }
 }
