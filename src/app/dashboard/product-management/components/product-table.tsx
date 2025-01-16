@@ -3,37 +3,55 @@
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CategoryService } from "@/lib/axios/category-service";
 import { ProductService } from "@/lib/axios/product-service";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Trash2 } from "lucide-react";
-import Image from "next/image";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Category } from "../../category-management/type";
 import type { Product } from "../type";
-import ProductForm from "./product-form";
+import ProductForm, { type ProductSchema } from "./product-form";
 
-const initialProducts: Product[] = [
-  {
-    id: 1,
-    name: "Sample Product 1",
-    price: 100.0,
-    quantity: 10,
-    image: "https://unsplash.com/photos/N7XodRrbzS0",
-  },
-  {
-    id: 2,
-    name: "Sample Product 2",
-    price: 200.0,
-    quantity: 5,
-    image: "https://unsplash.com/photos/LNRyGwIJr5c",
-  },
-];
+// ProductDashboard.tsx
 
 export default function ProductDashboard() {
-  const [products] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [refetch, setRefetch] = useState<boolean>(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [open, setOpen] = useState<boolean>(false);
+
   const productService = new ProductService();
+  const categoryService = new CategoryService();
+
   useEffect(() => {
-    productService.getAllProducts().then((result) => console.log(result));
-  });
+    productService.getAllProducts().then((result) => setProducts(result));
+    categoryService.getAllCategory().then((result) => setCategories(result));
+  }, [refetch]);
+
+  const handleCreateProduct = async (product: ProductSchema) => {
+    try {
+      await productService.createProduct(product);
+      setRefetch(!refetch);
+    } catch (errors) {
+      console.log(errors);
+    }
+  };
+
+  const handleUpdateProduct = async (product: ProductSchema) => {
+    try {
+      if (!selectedProduct) return; // Prevent update if no product is selected
+      await productService.updateProduct(selectedProduct.id, product);
+      setRefetch(!refetch);
+    } catch (errors) {
+      console.log(errors);
+    }
+  };
+
+  const handleEditClick = (product: Product) => {
+    setOpen(true);
+    setSelectedProduct(product);
+  };
 
   const columns: ColumnDef<Product, keyof Product>[] = [
     {
@@ -52,26 +70,30 @@ export default function ProductDashboard() {
       cell: ({ row }) => row.original.quantity,
     },
     {
-      id: "image",
-      header: "Image",
-      cell: ({ row }) => (
-        <Image
-          src={row.original.image}
-          alt={row.original.name}
-          width={50}
-          height={50}
-        />
-      ),
-    },
-    {
       id: "actions",
       header: "Actions",
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            onClick={() => handleEditClick(row.original)} // Pass selected product to form
+          >
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const result = await productService.deleteProduct(
+                  row.original.id
+                );
+                console.log(result);
+                setRefetch(!refetch);
+              } catch (errors) {
+                console.log(errors);
+              }
+            }}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -87,7 +109,16 @@ export default function ProductDashboard() {
             Product Management
           </CardTitle>
           <div className="flex flex-wrap gap-4">
-            <ProductForm onSubmit={() => console.log("asd")} />
+            <Button
+              className="bg-black hover:bg-opacity-80"
+              onClick={() => {
+                setSelectedProduct(null);
+                setOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Product
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -96,6 +127,13 @@ export default function ProductDashboard() {
           </div>
         </CardContent>
       </Card>
+      <ProductForm
+        setOpen={setOpen}
+        open={open}
+        initialData={selectedProduct || undefined} // Pass the selected product for editing
+        onSubmit={selectedProduct ? handleUpdateProduct : handleCreateProduct}
+        categoryList={categories}
+      />
     </div>
   );
 }
