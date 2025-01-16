@@ -4,7 +4,7 @@ import axiosClient from ".";
 export class ProductService {
   async getAllProducts() {
     try {
-      const response = await axiosClient.get("products/manage-products");
+      const response = await axiosClient.get("products/manage-products/");
       return response.data;
     } catch (error) {
       throw new Error(`Error fetching products: ${error}`);
@@ -22,17 +22,20 @@ export class ProductService {
 
   async createProduct(productData: ProductSchema) {
     try {
-      const response = await axiosClient.post("/products", productData);
+      const response = await axiosClient.post(
+        "/products/manage-product/",
+        productData
+      );
       return response.data;
     } catch (error) {
       throw new Error(`Error creating product: ${error}`);
     }
   }
 
-  async updateProduct(productId: string, productData: ProductSchema) {
+  async updateProduct(productId: number, productData: ProductSchema) {
     try {
       const response = await axiosClient.patch(
-        `/products/${productId}`,
+        `/products/manage-product/${productId}/`,
         productData
       );
       return response.data;
@@ -41,10 +44,13 @@ export class ProductService {
     }
   }
 
-  async deleteProduct(productId: string) {
+  async deleteProduct(productId: number) {
     try {
-      const response = await axiosClient.delete(`/products/${productId}`);
-      return response.data;
+      const response = await axiosClient.delete(
+        `/products/manage-product/${productId}/`
+      );
+      console.log("delete result", response);
+      return response;
     } catch (error) {
       throw new Error(`Error deleting product with ID ${productId}: ${error}`);
     }
