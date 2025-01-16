@@ -31,7 +31,7 @@ const items = [
   },
   {
     title: "User",
-    url: "#",
+    url: "/dashboard/user-management",
     icon: Search,
   },
   {
