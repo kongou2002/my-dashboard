@@ -1,9 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,69 +8,83 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Pencil } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, type Dispatch, type SetStateAction } from "react";
+import { useForm } from "react-hook-form";
+import slugify from "slugify";
+import { z } from "zod";
 
 // Define Zod schema for the category form
 const categorySchema = z.object({
   name: z.string().nonempty("Category name is required"),
-  slug: z.string().nonempty("Slug is required"),
+  slug: z.string(),
 });
 
-type CategoryFormValues = z.infer<typeof categorySchema>;
+export type CategoryFormValues = z.infer<typeof categorySchema>;
 
-const CategoryForm = () => {
-  const [isOpen, setIsOpen] = useState(false);
+type CategoryFormProps = {
+  initialData?: CategoryFormValues;
+  onSubmit: (data: CategoryFormValues) => void;
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+};
 
-  const categoryForm = useForm<CategoryFormValues>({
+const CategoryForm: React.FC<CategoryFormProps> = ({
+  initialData,
+  onSubmit,
+  open,
+  setOpen,
+}) => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: { name: "", slug: "" },
   });
 
+  // Update the form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData); // Reset the form with initialData
+    }
+  }, [initialData, reset]);
+
   const handleCategorySubmit = (data: CategoryFormValues) => {
-    console.log("Category Data:", data);
-    setIsOpen(false);
+    data.slug = slugify(data.name);
+    onSubmit(data);
+    setOpen(false);
   };
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} variant="outline">
-        <Pencil className="mr-2 h-4 w-4" />
-        Manage Categories
-      </Button>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add/Edit Category</DialogTitle>
+            <DialogTitle>
+              {initialData ? "Edit Category" : "Add Category"}
+            </DialogTitle>
           </DialogHeader>
           <form
-            onSubmit={categoryForm.handleSubmit(handleCategorySubmit)}
+            onSubmit={handleSubmit(handleCategorySubmit)}
             className="space-y-4"
           >
             <div>
               <Label htmlFor="name">Category Name</Label>
               <Input
                 id="name"
-                {...categoryForm.register("name")}
+                {...register("name")}
                 placeholder="Enter category name"
               />
-              <p className="text-red-500 text-sm">
-                {categoryForm.formState.errors.name?.message}
-              </p>
+              <p className="text-red-500 text-sm">{errors.name?.message}</p>
             </div>
-            <div>
-              <Label htmlFor="slug">Slug</Label>
-              <Input
-                id="slug"
-                {...categoryForm.register("slug")}
-                placeholder="Enter slug"
-              />
-              <p className="text-red-500 text-sm">
-                {categoryForm.formState.errors.slug?.message}
-              </p>
-            </div>
-            <Button type="submit">Save Category</Button>
+
+            <Button type="submit">
+              {initialData ? "Update Category" : "Save Category"}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>
