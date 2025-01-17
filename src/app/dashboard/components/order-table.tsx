@@ -6,38 +6,45 @@ import { OrderService } from "@/lib/axios/order-service";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 import type { Order } from "../type";
+import { OrderDetailsDialog } from "./details";
 
 export default function OrderTable() {
   const [order, setOrder] = useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    fetchOrders();
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchOrders = async () => {
     const result = await OrderService.getOrderService();
     setOrder(result);
+  };
+
+  const openDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setSelectedOrder(null);
+    setIsDialogOpen(false);
   };
 
   const columns: ColumnDef<Order, keyof Order>[] = [
     {
       id: "order_uuid",
       header: "Order ID",
-      cell: ({ row }) => row.original.order_uuid,
+      cell: ({ row }) => (
+        <button
+          onClick={() => openDialog(row.original)} // Open the dialog on click
+          className="text-blue-500 underline"
+        >
+          {row.original.order_uuid}
+        </button>
+      ),
     },
-    // {
-    //   id: "is_deleted",
-    //   header: "Deleted",
-    //   cell: ({ row }) => (
-    //     <div>
-    //       {row.original. ? (
-    //         <span className="text-red-500">Deleted</span>
-    //       ) : (
-    //         <span className="text-green-500">Active</span>
-    //       )}
-    //     </div>
-    //   ),
-    // },
     {
       id: "status",
       header: "Status",
@@ -62,6 +69,12 @@ export default function OrderTable() {
           </div>
         </CardContent>
       </Card>
+
+      <OrderDetailsDialog
+        closeDialog={closeDialog}
+        isDialogOpen={isDialogOpen}
+        selectedOrder={selectedOrder}
+      />
     </div>
   );
 }
