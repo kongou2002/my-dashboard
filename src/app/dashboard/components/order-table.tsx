@@ -35,6 +35,7 @@ export default function OrderTable() {
       setOrders(result);
       setError(null);
     } catch (err) {
+      console.log(err);
       setError("Failed to fetch orders. Please try again later.");
     } finally {
       setLoading(false);
