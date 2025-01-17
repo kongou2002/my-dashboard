@@ -27,6 +27,7 @@ export default function ProductDashboard() {
   useEffect(() => {
     productService.getAllProducts().then((result) => setProducts(result));
     categoryService.getAllCategory().then((result) => setCategories(result));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refetch]);
 
   const handleCreateProduct = async (product: ProductSchema) => {
